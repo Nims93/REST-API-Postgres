@@ -17,6 +17,6 @@ pool.query(
 );`
 );
 
-pool.query(`select * from todos`);
+// pool.query(`select * from todos`).then((res) => console.log(res));
 
 module.exports = pool;
