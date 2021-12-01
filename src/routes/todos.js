@@ -14,6 +14,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = await pool.query(`SELECT * FROM todos WHERE id=$1`, [
+      parseInt(id),
+    ]);
+
+    if (!data.rows.length) throw new Error('ID not found');
+
+    res.json({ success: true, data: data.rows[0] });
+  } catch (err) {
+    if (err.message === 'ID not found')
+      res.status(404).json({ success: false });
+    console.error(err.message);
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { title, content } = req.body;
