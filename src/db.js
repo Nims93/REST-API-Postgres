@@ -17,6 +17,44 @@ pool.query(
 );`
 );
 
-// pool.query(`select * from todos`).then((res) => console.log(res));
+exports.getTodos = async () => {
+  return await pool.query(`SELECT * FROM todos`);
+};
 
-module.exports = pool;
+exports.getTodoID = async (id) => {
+  return await pool.query(`SELECT * FROM todos WHERE id=$1`, [parseInt(id)]);
+};
+
+exports.putTodoID = async (id, title, content) => {
+  if (!title || !content) {
+    query = `UPDATE todos SET 
+    title=${title ? '$1' : 'title'}, 
+    content=${content ? '$1' : 'content'} 
+    WHERE id=$2 returning *`;
+    args = [title ? title : content, parseInt(id)];
+  } else {
+    query = `UPDATE todos SET 
+    title=$1, content= $2 
+    WHERE id=$3 returning *`;
+    args = [title, content, id];
+  }
+
+  return await pool.query(query, args);
+};
+
+exports.postTodo = async (title, content) => {
+  return await pool.query(
+    `INSERT INTO todos (title, content) 
+    VALUES ($1, $2) returning *`,
+    [title, content]
+  );
+};
+
+exports.deleteTodo = async (id) => {
+  return await pool.query(
+    `DELETE FROM todos 
+    WHERE id=$1 
+    returning *`,
+    [parseInt(id)]
+  );
+};

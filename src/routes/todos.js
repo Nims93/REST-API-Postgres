@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const db = require('../db');
 
 //route /todos/
 
 router.get('/', async (req, res) => {
   try {
-    const data = await pool.query(`SELECT * FROM todos`);
+    const data = await db.getTodos();
     res.json(data.rows);
   } catch (err) {
     console.error(err.message);
@@ -17,9 +17,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const data = await pool.query(`SELECT * FROM todos WHERE id=$1`, [
-      parseInt(id),
-    ]);
+    const data = await db.getTodoID(id);
 
     if (!data.rows.length) throw new Error('ID not found');
 
@@ -42,20 +40,8 @@ router.put('/:id', async (req, res) => {
     let query;
 
     if (!title && !content) throw new Error('No data supplied');
-    else if (!title || !content) {
-      query = `UPDATE todos SET 
-      title=${title ? '$1' : 'title'}, 
-      content=${content ? '$1' : 'content'} 
-      WHERE id=$2 returning *`;
-      args = [title ? title : content, parseInt(id)];
-    } else {
-      query = `UPDATE todos SET 
-      title=$1, content= $2 
-      WHERE id=$3 returning *`;
-      args = [title, content, id];
-    }
 
-    const data = await pool.query(query, args);
+    const data = await db.putTodoID(id);
 
     if (!data.rows.length) throw new Error('ID not found');
 
@@ -78,11 +64,8 @@ router.post('/', async (req, res) => {
       throw new Error('One or more paramaters are missing');
     }
 
-    const data = await pool.query(
-      `INSERT INTO todos (title, content) 
-      VALUES ($1, $2) returning *`,
-      [title, content]
-    );
+    const data = await db.postTodo(title, content);
+
     res.status(201).json({ success: true, added: data.rows[0] });
   } catch (err) {
     if (err.message === 'One or more paramaters are missing') {
@@ -95,8 +78,7 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const query = `DELETE FROM todos WHERE id=$1 returning *`;
-    const data = await pool.query(query, [parseInt(id)]);
+    const data = await db.deleteTodo(id);
 
     if (!data.rows.length) throw new Error('Database ID not found');
 
