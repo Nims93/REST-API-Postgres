@@ -1,13 +1,16 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
-const todosRouter = require('./routes/todos');
-app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('server working!');
-});
+module.exports = (db) => {
+  const app = express();
+  const todosRouter = require('./routes/todos')(db);
+  app.use(express.json());
 
-app.use('/todos', todosRouter);
+  app.get('/test', (req, res) => {
+    res.send('server working!');
+  });
 
-module.exports = app;
+  app.use('/todos', todosRouter);
+
+  return app;
+};
