@@ -11,6 +11,11 @@
     "typescript": "^4.5.2"
   },
   "scripts": {
-    "start": "nodemon ./src/server.js"
+    "start": "nodemon ./src/server.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^27.4.3",
+    "supertest": "^6.1.6"
   }
 }

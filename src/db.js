@@ -26,6 +26,9 @@ exports.getTodoID = async (id) => {
 };
 
 exports.putTodoID = async (id, title, content) => {
+  let query;
+  let args;
+
   if (!title || !content) {
     query = `UPDATE todos SET 
     title=${title ? '$1' : 'title'}, 
