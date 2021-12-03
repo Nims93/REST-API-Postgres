@@ -12,6 +12,12 @@ const mockDatabase = {
   postTodo: jest.fn((title, content) => ({
     rows: [{ id: 1, title, content }],
   })),
+
+  deleteTodo: jest.fn((id) =>
+    parseInt(id) >= 1
+      ? { rows: [{ id: parseInt(id), title: 'test', content: 'test' }] }
+      : { rows: [] }
+  ),
 };
 
 const app = makeApp(mockDatabase);
@@ -57,7 +63,7 @@ describe('GET /todos/:id', () => {
 });
 
 describe('POST /todos', () => {
-  afterEach(() => mockDatabase.getTodoID.mockClear());
+  afterEach(() => mockDatabase.postTodo.mockClear());
 
   test('should respond with json data if title and content are present', async () => {
     await request(app)
@@ -68,5 +74,26 @@ describe('POST /todos', () => {
 
   test('should respond with http error if title or content missing', async () => {
     await request(app).post('/todos').send({ title: 'test' }).expect(400);
+  });
+});
+
+describe('DELETE /todos', () => {
+  afterEach(() => mockDatabase.deleteTodo.mockClear());
+
+  const i = 1;
+  test('should respond with json data if id is valid', async () => {
+    await request(app)
+      .delete(`/todos/${i}`)
+      .expect(200, {
+        success: true,
+        data: { id: i, title: 'test', content: 'test' },
+      });
+  });
+
+  test('should repsond with 404 error if id param is invalid', async () => {
+    await request(app)
+      .delete(`/todos/${0}`)
+      .expect('Content-Type', /json/)
+      .expect(400);
   });
 });
