@@ -4,8 +4,13 @@ const request = require('supertest');
 
 const mockDatabase = {
   getTodos: jest.fn(() => []),
+
   getTodoID: jest.fn((id) => ({
     rows: [{ id, title: `test${id}`, content: `content${id}` }],
+  })),
+
+  postTodo: jest.fn((title, content) => ({
+    rows: [{ id: 1, title, content }],
   })),
 };
 
@@ -29,7 +34,7 @@ describe('GET /todos', () => {
   });
 });
 
-describe('GET/todos/:id', () => {
+describe('GET /todos/:id', () => {
   afterEach(() => mockDatabase.getTodoID.mockClear());
 
   test('should respond with json data', async () => {
@@ -42,11 +47,26 @@ describe('GET/todos/:id', () => {
     }
   });
 
-  test('should reject of id that does not exist', async () => {
+  test('should reject on id that does not exist', async () => {
     mockDatabase.getTodoID.mockReturnValueOnce({ rows: [] });
 
     await request(app)
       .get(`/todos/${0}`)
       .expect(404, { success: false, message: 'ID not found' });
+  });
+});
+
+describe('POST /todos', () => {
+  afterEach(() => mockDatabase.getTodoID.mockClear());
+
+  test('should respond with json data if title and content are present', async () => {
+    await request(app)
+      .post('/todos')
+      .send({ title: 'test', content: 'test' })
+      .expect(201);
+  });
+
+  test('should respond with http error if title or content missing', async () => {
+    await request(app).post('/todos').send({ title: 'test' }).expect(400);
   });
 });
