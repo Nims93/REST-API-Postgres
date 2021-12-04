@@ -9,7 +9,6 @@ module.exports = (database) => {
       const data = await database.getTodos();
       res.json(data.rows);
     } catch (err) {
-      console.error(err.message);
       res.status(400).json({ success: false, message: 'Something went wrong' });
     }
   });
@@ -25,7 +24,6 @@ module.exports = (database) => {
     } catch (err) {
       if (err.message === 'ID not found')
         res.status(404).json({ success: false, message: err.message });
-      console.error(err.message);
     }
   });
 
@@ -36,12 +34,9 @@ module.exports = (database) => {
         params: { id },
       } = req;
 
-      let args;
-      let query;
-
       if (!title && !content) throw new Error('No data supplied');
 
-      const data = await database.putTodoID(id);
+      const data = await database.putTodoID(id, title, content);
 
       if (!data.rows.length) throw new Error('ID not found');
 
@@ -51,9 +46,10 @@ module.exports = (database) => {
         res.status(400).json({ success: false, message: err.message });
       } else if (err.message === 'ID not found') {
         res.status(404).json({ success: false, message: err.message });
+      } else {
+        console.error(err.message);
+        res.status(400).json({ success: false, message: err.message });
       }
-      console.error(err.message);
-      res.status(400).json({ success: false, message: err.message });
     }
   });
 
@@ -69,7 +65,6 @@ module.exports = (database) => {
       res.status(201).json({ success: true, added: data.rows[0] });
     } catch (err) {
       if (err.message === 'One or more paramaters are missing') {
-        console.error(`Error: ${err.message} @ POST route: /todos`);
         res.status(400).json({ success: false, message: err.message });
       }
     }
@@ -84,12 +79,7 @@ module.exports = (database) => {
 
       res.json({ success: true, data: data.rows[0] });
     } catch (err) {
-      if (err.message === 'no param supplied') {
-        res.status(400).json({ success: false, message: err.message });
-      } else if (err.message === 'Database ID not found') {
-        res.status(400).json({ success: false, message: err.message });
-      }
-      console.error(err.message);
+      res.status(400).json({ success: false, message: err.message });
     }
   });
 
